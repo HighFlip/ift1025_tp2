@@ -6,17 +6,24 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Circle;
+import javafx.animation.AnimationTimer;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-    private int BACKGROUND_WIDTH = 640;
-    private int BACKGROUND_HEIGHT = 400;
-    private int CONTROLBAR_HEIGHT = 40;
+    private static final int BACKGROUND_WIDTH = 640;
+    private static final int BACKGROUND_HEIGHT = 400;
+    private static final int CONTROLBAR_HEIGHT = 40;
+    private static final double GRAVITY = 0.5;
+    private static final double JUMP_STRENGTH = -10;
+    private double velocity = 0;
 
     @Override
     public void start(Stage primaryStage) {
@@ -37,15 +44,26 @@ public class Main extends Application {
     }
 
     private Pane setupGameArea() {
-        // Create the game area with a background image
+        // Create the game area
         Pane gameArea = new Pane();
 
-        Image bgImage = new Image("file:fichiersFH\\bg.png"); // Make sure bg.png is in the correct path
+        // Create background image
+        Image bgImage = new Image("file:fichiersFH\\bg.png");
         ImageView bgImageView = new ImageView(bgImage);
-        bgImageView.setFitWidth(BACKGROUND_WIDTH); // Set the width to match your window
-        bgImageView.setFitHeight(BACKGROUND_HEIGHT); // Set the height to match your window
-        gameArea.getChildren().add(bgImageView);
+        bgImageView.setFitWidth(BACKGROUND_WIDTH);
+        bgImageView.setFitHeight(BACKGROUND_HEIGHT);
 
+        // Create flappy ghost modeled by a circle
+        Image ghostImage = new Image("file:fichiersFH\ghost.png");
+        ImageView ghostImageView = new ImageView(image);
+        int ghostImageWidth = ghostImage.getWidth();
+        int ghostImageHeight = ghostImage.getHeight();
+        character.setFitWidth(ghostImageWidth); // Adjust to match your image size
+        character.setFitHeight(ghostImageHeight); // Adjust to match your image size
+        character.setX(BACKGROUND_WIDTH - Math.floor(ghostImageWidth / 2)); // Center horizontally
+        character.setY(BACKGROUND_HEIGHT - Math.floor(ghostImageHeigth / 2)); // Center vertically
+
+        gameArea.getChildren().add(bgImageView);
         // Make the game area occupy more space
         VBox.setVgrow(gameArea, Priority.ALWAYS);
 
