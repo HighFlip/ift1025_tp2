@@ -24,6 +24,7 @@ public class Main extends Application {
     private static final double GRAVITY = 0.5;
     private static final double JUMP_STRENGTH = -10;
     private double velocity = 0;
+    private ImageView flappyGhost;
 
     @Override
     public void start(Stage primaryStage) {
@@ -41,6 +42,9 @@ public class Main extends Application {
         primaryStage.setTitle("Flappy Ghost");
         primaryStage.setResizable(false);
         primaryStage.show();
+
+        setupAnimationTimer();
+        setupKeyPress(scene);
     }
 
     private Pane setupGameArea() {
@@ -48,22 +52,22 @@ public class Main extends Application {
         Pane gameArea = new Pane();
 
         // Create background image
-        Image bgImage = new Image("file:fichiersFH\\bg.png");
+        Image bgImage = new Image("file:fichiersFH/bg.png");
         ImageView bgImageView = new ImageView(bgImage);
         bgImageView.setFitWidth(BACKGROUND_WIDTH);
         bgImageView.setFitHeight(BACKGROUND_HEIGHT);
 
         // Create flappy ghost modeled by a circle
-        Image ghostImage = new Image("file:fichiersFH\ghost.png");
-        ImageView ghostImageView = new ImageView(image);
-        int ghostImageWidth = ghostImage.getWidth();
-        int ghostImageHeight = ghostImage.getHeight();
-        character.setFitWidth(ghostImageWidth); // Adjust to match your image size
-        character.setFitHeight(ghostImageHeight); // Adjust to match your image size
-        character.setX(BACKGROUND_WIDTH - Math.floor(ghostImageWidth / 2)); // Center horizontally
-        character.setY(BACKGROUND_HEIGHT - Math.floor(ghostImageHeigth / 2)); // Center vertically
+        Image ghostImage = new Image("file:fichiersFH/ghost.png");
+        flappyGhost = new ImageView(ghostImage);
+        double ghostImageWidth = ghostImage.getWidth();
+        double ghostImageHeight = ghostImage.getHeight();
+        flappyGhost.setFitWidth(ghostImageWidth); // Adjust to match your image size
+        flappyGhost.setFitHeight(ghostImageHeight); // Adjust to match your image size
+        flappyGhost.setX(BACKGROUND_WIDTH - Math.floor(ghostImageWidth / 2)); // Center horizontally
+        flappyGhost.setY(BACKGROUND_HEIGHT - Math.floor(ghostImageHeight / 2)); // Center vertically
 
-        gameArea.getChildren().add(bgImageView);
+        gameArea.getChildren().addAll(bgImageView, flappyGhost);
         // Make the game area occupy more space
         VBox.setVgrow(gameArea, Priority.ALWAYS);
 
@@ -88,6 +92,40 @@ public class Main extends Application {
         controlBar.setAlignment(Pos.CENTER);
 
         return controlBar;
+    }
+
+    private void setupAnimationTimer() {
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                // Update velocity with gravity
+                velocity += GRAVITY;
+
+                // Update character's position
+                flappyGhost.setY(flappyGhost.getY() + velocity);
+
+                // Prevent character from falling out of the game area
+                if (flappyGhost.getY() > BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) {
+                    flappyGhost.setY(BACKGROUND_HEIGHT - flappyGhost.getFitHeight());
+                    velocity = 0;
+                }
+
+                // Prevent character from moving above the top of the game area
+                if (flappyGhost.getY() < 0) {
+                    flappyGhost.setY(0);
+                    velocity = 0;
+                }
+            }
+        };
+        timer.start();
+    }
+
+    private void setupKeyPress(Scene scene) {
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                velocity = JUMP_STRENGTH;
+            }
+        });
     }
 
     public static void main(String[] args) {
