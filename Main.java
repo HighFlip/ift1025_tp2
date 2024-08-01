@@ -1,4 +1,6 @@
-import javafx.animation.AnimationTimer;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -19,6 +21,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class Main extends Application {
     private static final int BACKGROUND_WIDTH = 640;
@@ -27,15 +30,14 @@ public class Main extends Application {
     private static final double GRAVITY = 500; // Gravity in pixels per second squared
     private static final double MAX_VELOCITY = 300; // Maximum velocity in pixels per second
     private static final double JUMP_STRENGTH = -300;
+    private static final double DELTA_TIME = 1.0 / 60;
     private double velocity = 0;
-    private ImageView flappyGhost;
     private boolean isPaused = true;
-    private Canvas gameArea;
     private double backgroundX = 0;
     private Image bgImage;
-
-    private long lastUpdateTime = 0;
-    private static final double TIME_STEP = 1.0 / 60; // Target time step for 60 FPS
+    private ImageView flappyGhost;
+    private Canvas gameArea;
+    private Timeline timeline;
 
     @Override
     public void start(Stage primaryStage) {
@@ -54,7 +56,7 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        setupAnimationTimer();
+        this.timeline = setupTimeline();
         setupKeyPress(scene);
         Platform.runLater(() -> {
             gameArea.requestFocus();
@@ -97,8 +99,10 @@ public class Main extends Application {
             isPaused = !isPaused;
             if (isPaused) {
                 pauseButton.setText("Jouer");
+                timeline.pause();
             } else {
                 pauseButton.setText("Pause");
+                timeline.play();
             }
             // After the function, focus the canvas
             Platform.runLater(() -> {
@@ -123,54 +127,48 @@ public class Main extends Application {
         return controlBar;
     }
 
-    private void setupAnimationTimer() {
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (!isPaused) {
-                    // Calculate elapsed time
-                    double deltaTime = (now - lastUpdateTime) / 1_000_000_000.0; // Convert nanoseconds to seconds
-                    lastUpdateTime = now;
+    private Timeline setupTimeline() {
+        // Initialize timeline for game updates
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(DELTA_TIME), e -> updateGame()));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        return timeline;
+    }
 
-                    // Ensure we use the target time step
-                    deltaTime = Math.min(deltaTime, TIME_STEP);
+    private void updateGame() {
+        if (!isPaused) {
+            // Apply gravity to velocity
+            velocity += GRAVITY * DELTA_TIME;
 
-                    // Update velocity with gravity
-                    velocity += GRAVITY * deltaTime;
-
-                    // Clamp the velocity
-                    if (velocity > MAX_VELOCITY) {
-                        velocity = MAX_VELOCITY;
-                    } else if (velocity < -MAX_VELOCITY) {
-                        velocity = -MAX_VELOCITY;
-                    }
-
-                    // Update character's position
-                    double newY = flappyGhost.getY() + velocity * deltaTime * 2; // Multiply by 60 to scale to target FPS
-
-                    // Bounce off the top and bottom edges
-                    if (newY < 0) {
-                        newY = -newY; // Bounce from top
-                        velocity = -velocity; // Invert velocity
-                    } else if (newY > BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) {
-                        newY = 2 * (BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) - newY; // Bounce from bottom
-                        velocity = -velocity; // Invert velocity
-                    }
-
-                    flappyGhost.setY(newY);
-
-                    // Update background scroll position
-                    backgroundX -= 2 * deltaTime * 60; // Adjust speed as needed
-                    if (backgroundX <= -BACKGROUND_WIDTH) {
-                        backgroundX = 0;
-                    }
-
-                    // Draw the game area
-                    drawGameArea();
-                }
+            // Clamp velocity
+            if (velocity > MAX_VELOCITY) {
+                velocity = MAX_VELOCITY;
+            } else if (velocity < -MAX_VELOCITY) {
+                velocity = -MAX_VELOCITY;
             }
-        };
-        timer.start();
+
+            // Update flappyGhost's position
+            double newY = flappyGhost.getY() + velocity * DELTA_TIME;
+
+            // Bounce off the top and bottom edges
+            if (newY < 0) {
+                newY = -newY; // Bounce from top
+                velocity = -velocity; // Invert velocity
+            } else if (newY > BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) {
+                newY = 2 * (BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) - newY; // Bounce from bottom
+                velocity = -velocity; // Invert velocity
+            }
+
+            flappyGhost.setY(newY);
+
+            // Update background scroll position
+            backgroundX -= 2 * DELTA_TIME * 60; // Adjust speed as needed
+            if (backgroundX <= -BACKGROUND_WIDTH) {
+                backgroundX = 0;
+            }
+
+            // Draw the game area
+            drawGameArea();
+        }
     }
 
     private void drawGameArea() {
@@ -189,9 +187,7 @@ public class Main extends Application {
     private void setupKeyPress(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SPACE && !isPaused) {
-                if (flappyGhost.getY() >= 0 && flappyGhost.getY() <= BACKGROUND_HEIGHT - flappyGhost.getFitHeight()) {
-                    velocity = JUMP_STRENGTH; // Apply jump strength
-                }
+                velocity = JUMP_STRENGTH;
             }
         });
         // When clicking elsewhere on the scene, focus returns to the canvas
