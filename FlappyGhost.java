@@ -43,6 +43,7 @@ public class FlappyGhost extends Application {
         character = new CharacterModel(BACKGROUND_WIDTH / 2, BACKGROUND_HEIGHT / 2);
         view = new FlappyGhostView(gameArea.getGraphicsContext2D());
         timeline = setupTimeline();
+
         controller = new FlappyGhostController(character, view, timeline);
 
         HBox controlBar = setupControlBar();
@@ -58,6 +59,7 @@ public class FlappyGhost extends Application {
 
         controller.handlePauseButton((Button) controlBar.getChildren().get(0), gameArea); // Pass pause button
         controller.handleDebugToggle((CheckBox) controlBar.getChildren().get(2), gameArea); // Pass debug checkbox
+        controller.handleScoreLabel((Label) controlBar.getChildren().get(4)); // Pass score Label
         controller.handleKeyPress(scene, gameArea);
         controller.handleMouseClick(scene, gameArea);
         controller.initializeGame(gameArea);
@@ -96,7 +98,7 @@ public class FlappyGhost extends Application {
     }
 
     private void updateGame() {
-        controller.update(DELTA_TIME, BACKGROUND_WIDTH);
+        controller.update(DELTA_TIME);
     }
 
     public static void main(String[] args) {
