@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -19,10 +18,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Classe principale pour le jeu Flappy Ghost.
+ */
 public class FlappyGhost extends Application {
     public static final int BACKGROUND_WIDTH = 640;
     public static final int BACKGROUND_HEIGHT = 400;
@@ -37,6 +38,11 @@ public class FlappyGhost extends Application {
     private FlappyGhostController controller;
     private Timeline timeline;
 
+    /**
+     * Méthode principale pour démarrer l'application.
+     * 
+     * @param primaryStage La fenêtre principale de l'application.
+     */
     @Override
     public void start(Stage primaryStage) {
         gameArea = setupGameArea();
@@ -52,19 +58,26 @@ public class FlappyGhost extends Application {
         mainLayout.getChildren().addAll(gameArea, controlBar);
 
         Scene scene = new Scene(mainLayout, BACKGROUND_WIDTH, BACKGROUND_HEIGHT + CONTROLBAR_HEIGHT);
+        view.setWindowIcon(primaryStage);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Flappy Ghost");
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        controller.handlePauseButton((Button) controlBar.getChildren().get(0), gameArea); // Pass pause button
-        controller.handleDebugToggle((CheckBox) controlBar.getChildren().get(2), gameArea); // Pass debug checkbox
-        controller.handleScoreLabel((Label) controlBar.getChildren().get(4)); // Pass score Label
+        // Configure les contrôles du jeu
+        controller.handlePauseButton((Button) controlBar.getChildren().get(0), gameArea); // Gère le bouton pause
+        controller.handleDebugToggle((CheckBox) controlBar.getChildren().get(2), gameArea); // Gère le mode debug
+        controller.handleScoreLabel((Label) controlBar.getChildren().get(4)); // Gère l'affichage du score
         controller.handleKeyPress(scene, gameArea);
         controller.handleMouseClick(scene, gameArea);
         controller.initializeGame(gameArea);
     }
 
+    /**
+     * Configure et retourne la zone de jeu.
+     * 
+     * @return Canvas La zone de jeu initialisée.
+     */
     private Canvas setupGameArea() {
         Canvas gameArea = new Canvas(BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         this.gameArea = gameArea;
@@ -72,6 +85,11 @@ public class FlappyGhost extends Application {
         return gameArea;
     }
 
+    /**
+     * Configure et retourne la barre de contrôle.
+     * 
+     * @return HBox La barre de contrôle initialisée.
+     */
     private HBox setupControlBar() {
         Button pauseButton = new Button("Jouer");
         CheckBox debugToggle = new CheckBox("Debug Mode");
@@ -91,16 +109,29 @@ public class FlappyGhost extends Application {
         return controlBar;
     }
 
+    /**
+     * Configure et retourne la Timeline pour l'animation du jeu.
+     * 
+     * @return Timeline La timeline initialisée.
+     */
     private Timeline setupTimeline() {
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(DELTA_TIME), e -> updateGame()));
         timeline.setCycleCount(Animation.INDEFINITE);
         return timeline;
     }
 
+    /**
+     * Met à jour l'état du jeu à chaque frame.
+     */
     private void updateGame() {
         controller.update(DELTA_TIME);
     }
 
+    /**
+     * Point d'entrée principal pour lancer l'application.
+     * 
+     * @param args Arguments de la ligne de commande.
+     */
     public static void main(String[] args) {
         launch(args);
     }
